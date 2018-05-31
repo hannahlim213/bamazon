@@ -20,10 +20,14 @@ connection.connect(function (err) {
     start()
 })
 
+var purchasedItemId;
+var guestPurchaseStock;
+var itemPrice;
+
+
 // start function displays the products table
 function start() {
     connection.query("SELECT * FROM products", function (err, results) {
-
 
         // if(err) throw err;
         var table = new Table({
@@ -37,72 +41,88 @@ function start() {
             );
         }
         console.log(table.toString());
+
         purchase();
     })
 }
 
-// purchase function "What is the ID of the item you want to purchase?"
-
+// function to update database when user makes a purchase
 function purchase() {
     inquirer.prompt([
         {
-            name: "purchase",
+            name: "item_id",
             type: "input",
             message: "What is the ID of the item you want to purchase?"
         },
         {
-            name: "quantity",
+            name: "stock_quantity",
             type: "input",
             message: "How many units would you like?"
         }
     ])
         .then(function (answer) {
-            // get info of chosen item
-            var chosenItem;
-            var initialQuantity = results[i].stock_quantity;
-            var chosenQuantity = results[i].stock_quantity;
 
-            // for (var i = 0; i < results.length; i++) {
-            //     if (answer.choice === results[i].item_id) {
-            //         chosenQuantity = results[i].stock_quantity;
-            //     }
-            // }
-            
-            console.log (chosenItem);
+            // capture guest item id and convert to int
+            purchasedItemId = parseInt(answer.item_id);
+            // console.log(purchasedItemId)
 
-            // minus the user quanatity input from database
-            var newQuantity;
-            
-            newQuantity = initialQuantity - chosenQuantity;
-            // update database
+            // capture stock quantity purchased and convert to int
+            guestPurchaseStock = parseInt(answer.stock_quantity)
+            // console.log(guestPurchaseStock)
+
+            // connect to sql for whole table
             connection.query(
-                "UPDATE products SET stock_quantity ? WHERE ?",
-                [
-                    {
-                       stock_quantity: newQuantity
-                    },
-                    {
-                        id: chosenItem
-                    }
-                ]
-            )
+                "SELECT stock_quantity FROM products", function (err, res) {
 
+                    // capture current stock quantity
+                    var currentStock = parseInt(res[purchasedItemId - 1].stock_quantity);
+                    // console.log(currentStock)
+
+                    if (err) {
+                        console.log(err)
+
+                        // current stock must not be less than stock of guest purchase
+                    } else if (currentStock < guestPurchaseStock) {
+                        console.log("Sorry, not enough items in inventory.")
+
+                        // if current stock is more than stock of guest purchase, update the sql
+                    } else if (currentStock > guestPurchaseStock) {
+                        connection.query(
+                            "UPDATE products SET ? WHERE ?",
+                            [
+                                {
+                                    stock_quantity: currentStock - guestPurchaseStock,
+                                },
+                                {
+                                    item_id: purchasedItemId
+                                }
+                            ]
+                        )
+                        start()
+                        // console.log(itemPrice)
+                        // console.log("Total price is " + totalCost())
+                    } // end of if statement
+                } // end of sql connection for whole table
+            ) // end of connection query
         })
 }
 
-// // quantity function "How many units would you like?"
-// function quantity() {
-// inquirer.prompt([
-//     {
-//         name: "qunatity",
-//         type: "input",
-//         message: "How many units would you like?"
-//     }
-// ]).then(function(answer) {
-//     // get quantity
-//     var chosenQuantity;
+function table() {
+    itemPrice
+    connection.query(
+        "SELECT * FROM products",
+        [
+            {
+                item_id: item_id,
+                product_name: product_name,
+                department_name: department_name,
+                price: price,
+                stock_quantity: stock_quantity
+            }
+        ]
+    ).then(function (answer) {
 
-//     //update databse
-   
-// })
-// }
+        // capture item price and convert to int
+        itemPrice = parseFloat(answer.price)
+    })
+}
