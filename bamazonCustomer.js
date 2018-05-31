@@ -68,15 +68,19 @@ function purchase() {
 
             // capture stock quantity purchased and convert to int
             guestPurchaseStock = parseInt(answer.stock_quantity)
-            // console.log(guestPurchaseStock)
 
             // connect to sql for whole table
             connection.query(
-                "SELECT stock_quantity FROM products", function (err, res) {
+                "SELECT stock_quantity, price, product_name FROM products WHERE ?", { item_id: purchasedItemId }, function (err, res) {
+                    // console.log(res)
+                    // capture product name of selected item id
+                    var selectedProductName = res[0].product_name;
 
                     // capture current stock quantity
-                    var currentStock = parseInt(res[purchasedItemId - 1].stock_quantity);
-                    // console.log(currentStock)
+                    var currentStock = parseInt(res[0].stock_quantity);
+
+                    // total price
+                    var totalPrice = guestPurchaseStock * res[0].price;
 
                     if (err) {
                         console.log(err)
@@ -87,6 +91,9 @@ function purchase() {
 
                         // if current stock is more than stock of guest purchase, update the sql
                     } else if (currentStock > guestPurchaseStock) {
+                        console.log("You have purhcased " + guestPurchaseStock + " units " + "of " + selectedProductName + "\n Total price is $" + totalPrice +"\n Thank you!")
+
+                        
                         connection.query(
                             "UPDATE products SET ? WHERE ?",
                             [
@@ -98,8 +105,9 @@ function purchase() {
                                 }
                             ]
                         )
-                        start()
-                        // console.log(itemPrice)
+
+                        start();
+
                         // console.log("Total price is " + totalCost())
                     } // end of if statement
                 } // end of sql connection for whole table
@@ -108,21 +116,20 @@ function purchase() {
 }
 
 function table() {
-    itemPrice
-    connection.query(
-        "SELECT * FROM products",
-        [
-            {
-                item_id: item_id,
-                product_name: product_name,
-                department_name: department_name,
-                price: price,
-                stock_quantity: stock_quantity
-            }
-        ]
-    ).then(function (answer) {
+    connection.query("SELECT * FROM products", function (err, results) {
 
-        // capture item price and convert to int
-        itemPrice = parseFloat(answer.price)
+        // if(err) throw err;
+        var table = new Table({
+            head: ["Item ID", "Product Name", "Department Name", "Price", "Stock Quantity"],
+            colWidths: [10, 20, 20, 10, 20]
+        });
+
+        for (var i = 0; i < results.length; i++) {
+            table.push(
+                [results[i].item_id, results[i].product_name, results[i].department_name, results[i].price, results[i].stock_quantity],
+            );
+        }
+        console.log(table.toString());
+        connection.end();
     })
 }
