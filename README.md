@@ -1,9 +1,5 @@
 # bamazon
-Bringing people together since 2018, MoveMe is the all in one app for getting involved in your local community.
-
-MoveMe was created to provide people easy access to find and join political or community events. Users are prompted to enter his/her zipcode and MoveMe will generate upcoming events from the Meetup.com and the location from Google Maps. We have also created a chat feature for MoveMe users to connect with other users online.
-
-All these elements combine to create a user experience that is both functional and intuitive.
+Bamazon is a marketplace where users view products, prices and inventory. Users input the item id they would like to purchase and the number of units. Then, Bamazon will calculate the total price and deduct the stock quantity. 
 
 ## Getting Started
 
